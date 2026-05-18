@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spy Quest: Holographic Kid Detective</title>
+    <!-- Tailwind CSS for sleek responsive layout architecture -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for premium playful cyberpunk typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for modern high-tech spy icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for high-fidelity auditory feedback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: radial-gradient(circle at center, #0f172a, #020617, #000000);
+            overflow-x: hidden;
+        }
+        .spy-hud-text {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .spy-label-text {
+            font-family: 'Rajdhani', sans-serif;
+        }
+        /* Holographic glassmorphism containers */
+        .spy-dashboard {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.15), inset 0 0 20px rgba(6, 182, 212, 0.05);
+        }
+        .spy-card-glow {
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.15), inset 0 0 15px rgba(244, 63, 94, 0.05);
+            border: 2px solid rgba(244, 63, 94, 0.3);
+        }
+        .btn-spy {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-spy:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.6);
+        }
+        .btn-spy:active {
+            transform: scale(0.97);
+        }
+        /* Floating animations */
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(1deg); }
+        }
+        .animate-subtle-float {
+            animation: subtle-float 4s ease-in-out infinite;
+        }
+        /* Scanline radar sweep effect */
+        @keyframes scan {
+            0% { top: -10%; }
+            50% { top: 110%; }
+            100% { top: -10%; }
+        }
+        .scan-line {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #06b6d4, transparent);
+            position: absolute;
+            animation: scan 6s linear infinite;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        /* Pop scale entrance */
+        @keyframes pop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        /* Match feedback animations */
+        .correct-cyan {
+            animation: flashCyan 0.5s ease-out;
+        }
+        .wrong-red {
+            animation: flashRed 0.5s ease-out;
+        }
+        @keyframes flashCyan {
+            0%, 100% { border-color: rgba(6, 182, 212, 0.3); box-shadow: 0 0 30px rgba(6, 182, 212, 0.15); }
+            50% { border-color: #22c55e; box-shadow: 0 0 40px rgba(34, 197, 94, 0.6); background-color: rgba(20, 83, 45, 0.3); }
+        }
+        @keyframes flashRed {
+            0%, 100% { border-color: rgba(6, 182, 212, 0.3); box-shadow: 0 0 30px rgba(6, 182, 212, 0.15); }
+            50% { border-color: #ef4444; box-shadow: 0 0 40px rgba(239, 68, 68, 0.6); background-color: rgba(127, 29, 29, 0.3); }
+        }
+        /* Interactive custom confetti particles */
+        .confetti-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        /* Dynamic transition splash screen laser scan overlay */
+        .transition-laser {
+            background: linear-gradient(to bottom, transparent 48%, rgba(6, 182, 212, 0.8) 50%, transparent 52%);
+            animation: laserSweep 1.2s ease-in-out infinite;
+        }
+        @keyframes laserSweep {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col justify-between selection:bg-cyan-800 overflow-x-hidden relative">
+
+    <!-- Ambient particle canvas backdrop -->
+    <div class="absolute inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
+        <div class="scan-line"></div>
+    </div>
+
+    <!-- HIGH TECH DASHBOARD HEADER -->
+    <header class="w-full max-w-5xl mx-auto px-6 py-4 flex justify-between items-center z-10">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="goToStartPage()">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-rose-500 flex items-center justify-center shadow-lg shadow-cyan-500/30 transform hover:rotate-12 transition-transform">
+                <i class="fa-solid fa-user-secret text-white text-2xl"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="spy-hud-text text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400">
+                    SPY<span class="text-rose-400">QUEST</span>
+                </span>
+                <span class="spy-label-text text-xs tracking-widest text-cyan-400 uppercase font-bold">KID DETECTIVE AGENCY</span>
+            </div>
+        </div>
+
+        <!-- System Controls -->
+        <div class="flex items-center space-x-3">
+            <!-- Audio Toggle Button -->
+            <button id="audioBtn" onclick="toggleAudio()" class="w-11 h-11 rounded-2xl bg-slate-900 border-2 border-cyan-500/40 hover:border-cyan-400 flex items-center justify-center text-cyan-400 hover:text-cyan-300 transition-all shadow-md active:scale-95" title="Toggle Sound Interface">
+                <i id="audioIcon" class="fa-solid fa-volume-high text-lg"></i>
+            </button>
+            <!-- Help Trigger -->
+            <button onclick="showInstructions()" class="w-11 h-11 rounded-2xl bg-slate-900 border-2 border-rose-500/40 hover:border-rose-400 flex items-center justify-center text-rose-400 hover:text-rose-300 transition-all shadow-md active:scale-95" title="Decryption Instructions">
+                <i class="fa-solid fa-user-ninja text-lg animate-pulse"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN INTERACTIVE MONITOR -->
+    <main class="flex-grow flex items-center justify-center px-4 py-4 z-10 relative">
+        <div class="w-full max-w-4xl min-h-[550px] relative flex flex-col justify-between" id="gameFrame">
+
+            <!-- 1. START SCREEN (Futuristic Neon Mission Board) -->
+            <div id="startScreen" class="spy-dashboard rounded-[2.5rem] p-6 md:p-10 flex flex-col items-center justify-center text-center space-y-6 animate-pop w-full relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="space-y-2">
+                    <span class="spy-label-text text-xs font-black tracking-widest text-cyan-400 uppercase bg-cyan-950/80 border border-cyan-800 px-4 py-1 rounded-full">
+                        🕵️‍♂️ ACCESS GRANTED • 10 CODED MISSIONS DETECTED
+                    </span>
+                    <h1 class="spy-hud-text text-3xl md:text-5xl font-black tracking-wider text-slate-100 leading-tight">
+                        SYSTEMS: <span class="text-cyan-400">ONLINE</span> <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-rose-400 to-indigo-400">AGENT RECOGNITION DEPLOYER</span>
+                    </h1>
+                    <p class="text-slate-400 max-w-xl mx-auto text-xs md:text-sm font-medium">
+                        Welcome, Young Recruiter! Can you break through all 10 visual and logical decryption walls? Spot anomalous clues, associate items with base coordinates, trace duplicates, and sync vault keycodes!
+                    </p>
+                </div>
+
+                <!-- 10 Level Mission Board Preview Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full max-w-3xl text-left">
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0s;">
+                        <span class="block text-2xl">🍕</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M1: ODD ONE OUT</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.1s;">
+                        <span class="block text-2xl">🏠</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M2: SYNC COORDS</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.2s;">
+                        <span class="block text-2xl">👯‍♀️</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M3: TWIN SPOTTER</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.3s;">
+                        <span class="block text-2xl">🔎</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M4: SECTOR SEARCH</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.4s;">
+                        <span class="block text-2xl">🧩</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M5: CRACK PATTERN</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.5s;">
+                        <span class="block text-2xl">🎨</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M6: COLOR FUSION</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.6s;">
+                        <span class="block text-2xl">🔢</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M7: SANDBOX MATH</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.7s;">
+                        <span class="block text-2xl">🌈</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M8: REBUS CLUES</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.8s;">
+                        <span class="block text-2xl">🔥</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M9: POLAR OPPOSITE</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 transition-all text-center animate-subtle-float" style="animation-delay: 0.9s;">
+                        <span class="block text-2xl">🔑</span>
+                        <span class="spy-label-text block text-xs font-black text-cyan-400 mt-1 uppercase">M10: ULTIMATE VAULT</span>
+                    </div>
+                </div>
+
+                <!-- Launch Options -->
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full justify-center pt-2 z-10">
+                    <button onclick="startGame()" class="btn-spy px-10 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-rose-500 text-white font-black text-lg tracking-widest shadow-lg shadow-cyan-500/25 spy-hud-text">
+                        <i class="fa-solid fa-keypad mr-2 animate-bounce"></i> INITIALIZE MISSION
+                    </button>
+                    <button onclick="showInstructions()" class="btn-spy px-8 py-4 rounded-2xl bg-slate-900 border-2 border-rose-500/60 text-rose-400 font-bold text-md hover:bg-rose-950/20 shadow-md">
+                        💡 DECRYPT HOW-TO
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. SCAN-DECRYPT OVERLAY TRANSITION SCREEN -->
+            <div id="decryptingOverlay" class="hidden absolute inset-0 spy-dashboard rounded-[2.5rem] flex flex-col items-center justify-center text-center z-40 bg-slate-950/90 overflow-hidden animate-pop">
+                <div class="transition-laser absolute inset-0 pointer-events-none opacity-40"></div>
+                <div class="space-y-4">
+                    <i class="fa-solid fa-satellite-dish text-6xl text-cyan-400 animate-bounce"></i>
+                    <h2 class="spy-hud-text text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400" id="decryptingTitle">
+                        DECRYPTING MISSION INTEL...
+                    </h2>
+                    <p class="spy-label-text text-xs tracking-widest text-slate-400 uppercase">SYS STABILITY: OPTIMAL • DOWNLINK ESTABLISHED</p>
+                    <!-- Visual holographic bar -->
+                    <div class="w-64 h-2.5 bg-slate-900 border border-cyan-500/30 rounded-full overflow-hidden mx-auto mt-2">
+                        <div class="h-full bg-cyan-400 rounded-full" id="decryptProgressBar" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. GAMEPLAY CONSOLE -->
+            <div id="gameplayScreen" class="hidden spy-dashboard rounded-[2.5rem] p-6 md:p-8 flex flex-col justify-between w-full min-h-[580px] transition-all duration-500 relative">
+                
+                <!-- Game HUD Terminal Top -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b-2 border-cyan-500/20 mb-6">
+                    <!-- Current Mission Badge -->
+                    <div class="flex items-center space-x-3">
+                        <div class="flex flex-col">
+                            <span class="spy-label-text text-[10px] font-bold uppercase tracking-widest text-slate-400">CODENAME: CONSOLE</span>
+                            <div id="levelBadge" class="px-4 py-1 rounded-full bg-cyan-950 border border-cyan-400 text-xs font-black text-cyan-400 spy-hud-text shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                                MISSION 1
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Heart Lives Display (Three Chances per Level) -->
+                    <div class="flex flex-col items-center">
+                        <span class="spy-label-text text-[10px] font-bold uppercase tracking-widest text-slate-400">AGENCY BACKUP SHIELDS</span>
+                        <div class="flex items-center space-x-1.5 mt-0.5" id="livesContainer">
+                            <i class="fa-solid fa-heart text-rose-500 text-2xl animate-pulse"></i>
+                            <i class="fa-solid fa-heart text-rose-500 text-2xl animate-pulse"></i>
+                            <i class="fa-solid fa-heart text-rose-500 text-2xl animate-pulse"></i>
+                        </div>
+                    </div>
+
+                    <!-- Score and Timer displays -->
+                    <div class="flex items-center space-x-6">
+                        <div class="text-right">
+                            <span class="spy-label-text text-[10px] font-bold uppercase tracking-widest text-slate-400 block">TOTAL EXP</span>
+                            <span id="scoreDisplay" class="spy-hud-text text-2xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">0</span>
+                        </div>
+                        <div class="w-16 h-16 rounded-2xl border-2 border-cyan-500/40 flex flex-col items-center justify-center relative bg-slate-900/80" id="timerCircle">
+                            <span class="spy-label-text text-[9px] text-slate-400 font-bold block leading-none">SYS_SEC</span>
+                            <span id="timerText" class="spy-hud-text text-xl font-black leading-tight text-slate-100">30</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Level Content Area -->
+                <div class="flex-grow flex flex-col justify-center items-center py-4 w-full relative">
+                    
+                    <!-- UNIFIED TEMPLATE 1: 4-Cards Grid (Used for Lvl 1, Lvl 6, Lvl 9) -->
+                    <div id="levelCards4Container" class="w-full flex flex-col items-center space-y-6 hidden animate-pop">
+                        <div class="text-center">
+                            <h2 id="cards4Title" class="spy-hud-text text-xl md:text-2xl font-black text-slate-100">🍕 Odd One Out</h2>
+                            <p id="cards4Prompt" class="text-xs md:text-sm text-slate-400 mt-1">Isolate the suspicious data item!</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full max-w-2xl my-4">
+                            <button onclick="checkCards4Answer(0)" id="cards4Btn0" class="btn-spy p-6 rounded-3xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-md active:scale-95 text-6xl flex items-center justify-center aspect-square">🐱</button>
+                            <button onclick="checkCards4Answer(1)" id="cards4Btn1" class="btn-spy p-6 rounded-3xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-md active:scale-95 text-6xl flex items-center justify-center aspect-square">🐶</button>
+                            <button onclick="checkCards4Answer(2)" id="cards4Btn2" class="btn-spy p-6 rounded-3xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-md active:scale-95 text-6xl flex items-center justify-center aspect-square">Hamster</button>
+                            <button onclick="checkCards4Answer(3)" id="cards4Btn3" class="btn-spy p-6 rounded-3xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-md active:scale-95 text-6xl flex items-center justify-center aspect-square">Pizza</button>
+                        </div>
+                    </div>
+
+                    <!-- UNIFIED TEMPLATE 2: Target & 4 Text Options (Used for Lvl 2, Lvl 8) -->
+                    <div id="levelTargetOptionsContainer" class="w-full flex flex-col items-center space-y-6 hidden animate-pop">
+                        <div class="text-center">
+                            <h2 id="targetOptionsTitle" class="spy-hud-text text-xl md:text-2xl font-black text-slate-100">🏠 Coordinated Association</h2>
+                            <p id="targetOptionsPrompt" class="text-xs md:text-sm text-slate-400 mt-1">Trace the target element to its home node!</p>
+                        </div>
+
+                        <!-- Target item display -->
+                        <div class="flex flex-col items-center space-y-2 py-2">
+                            <div id="targetOptionsIcon" class="text-7xl p-5 bg-slate-900 rounded-3xl border-2 border-rose-500/40 shadow-lg shadow-rose-500/10 animate-subtle-float">👨‍🚀</div>
+                            <span id="targetOptionsName" class="spy-hud-text text-lg font-black text-rose-400 uppercase tracking-widest">Astronaut</span>
+                        </div>
+
+                        <!-- 4 choices -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
+                            <button onclick="checkTargetOptionsAnswer(0)" id="targetOptionsOpt0" class="btn-spy p-4 rounded-2xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center text-sm md:text-md font-bold text-slate-200 shadow-sm flex items-center justify-center gap-3">🚀 Outer Space</button>
+                            <button onclick="checkTargetOptionsAnswer(1)" id="targetOptionsOpt1" class="btn-spy p-4 rounded-2xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center text-sm md:text-md font-bold text-slate-200 shadow-sm flex items-center justify-center gap-3">🌲 Forest</button>
+                            <button onclick="checkTargetOptionsAnswer(2)" id="targetOptionsOpt2" class="btn-spy p-4 rounded-2xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center text-sm md:text-md font-bold text-slate-200 shadow-sm flex items-center justify-center gap-3">🌊 Ocean</button>
+                            <button onclick="checkTargetOptionsAnswer(3)" id="targetOptionsOpt3" class="btn-spy p-4 rounded-2xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center text-sm md:text-md font-bold text-slate-200 shadow-sm flex items-center justify-center gap-3">🚒 Fire Station</button>
+                        </div>
+                    </div>
+
+                    <!-- LEVEL 3 CONTAINER: Twin Finder (Spot It!) -->
+                    <div id="level3Container" class="w-full flex flex-col items-center space-y-6 hidden animate-pop">
+                        <div class="text-center">
+                            <h2 class="spy-hud-text text-xl md:text-2xl font-black text-slate-100">👯‍♀️ Split Match Signal</h2>
+                            <p class="text-xs md:text-sm text-slate-400 mt-1">There is exactly <strong>ONE</strong> identical visual signal between the left and right decryption nodes. Sync it!</p>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-8 w-full max-w-3xl">
+                            <!-- Left Card -->
+                            <div class="w-full max-w-[280px] p-6 bg-slate-950 border-2 border-cyan-500/40 rounded-[2.5rem] shadow-lg flex flex-col items-center">
+                                <span class="spy-label-text text-xs font-black uppercase text-cyan-400 tracking-widest mb-3">RECEIVER ALPHA</span>
+                                <div id="lvl3LeftGrid" class="grid grid-cols-2 gap-4">
+                                    <!-- Dynamic -->
+                                </div>
+                            </div>
+
+                            <div class="text-4xl text-cyan-400 font-black animate-pulse"><i class="fa-solid fa-arrows-left-right"></i></div>
+
+                            <!-- Right Card -->
+                            <div class="w-full max-w-[280px] p-6 bg-slate-950 border-2 border-cyan-500/40 rounded-[2.5rem] shadow-lg flex flex-col items-center">
+                                <span class="spy-label-text text-xs font-black uppercase text-cyan-400 tracking-widest mb-3">RECEIVER BETA</span>
+                                <div id="lvl3RightGrid" class="grid grid-cols-2 gap-4">
+                                    <!-- Dynamic -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LEVEL 4 CONTAINER: Super Spy Grid -->
+                    <div id="level4Container" class="w-full flex flex-col items-center space-y-4 hidden animate-pop">
+                        <div class="text-center">
+                            <h2 class="spy-hud-text text-xl md:text-2xl font-black text-slate-100">🔎 Grid Sector Scan</h2>
+                            <p class="text-xs md:text-sm text-slate-400 mt-1">Quick! Locate the targeted asset within the randomized grid coordinate fields!</p>
+                        </div>
+
+                        <!-- Target display -->
+                        <div class="flex items-center space-x-3 bg-cyan-950/80 border-2 border-cyan-400/40 px-6 py-2 rounded-2xl shadow-md">
+                            <span class="spy-label-text text-xs font-bold text-slate-300 tracking-widest">TARGET ASSET:</span>
+                            <span id="lvl4TargetIcon" class="text-4xl">🦖</span>
+                            <span id="lvl4TargetName" class="spy-hud-text font-black text-cyan-400 text-sm tracking-wider">Dinosaur</span>
+                        </div>
+
+                        <!-- 4x4 interactive grid -->
+                        <div id="lvl4Grid" class="grid grid-cols-4 gap-3 p-4 bg-slate-950 rounded-3xl border border-cyan-500/20 shadow-inner w-full max-w-[340px] aspect-square">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- LEVEL 5 CONTAINER: Pattern Matcher -->
+                    <div id="level5Container" class="w-full flex flex-col items-center space-y-6 hidden animate-pop">
+                        <div class="text-center">
+                            <h2 class="spy-hud-text text-xl md:text-2xl font-black text-slate-100">🧩 Logic Decryption Sequence</h2>
+                            <p class="text-xs md:text-sm text-slate-400 mt-1">Analyze the pattern sequence and select the missing piece to bypass security!</p>
+                        </div>
+                        <!-- Display sequence row -->
+                        <div id="patternSequenceRow" class="flex flex-wrap items-center justify-center gap-3 bg-slate-950 border border-cyan-500/20 p-4 rounded-3xl shadow-md my-4">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <!-- Options grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-xl">
+                            <button onclick="checkPatternAnswer(0)" id="patternOpt0" class="btn-spy p-4 md:p-6 rounded-2xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-sm text-5xl flex items-center justify-center aspect-square">🍎</button>
+                            <button onclick="checkPatternAnswer(1)" id="patternOpt1" class="btn-spy p-4 md:p-6 rounded-2xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-sm text-5xl flex items-center justify-center aspect-square">🍌</button>
+                            <button onclick="checkPatternAnswer(2)" id="patternOpt2" class="btn-spy p-4 md:p-6 rounded-2xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-sm text-5xl flex items-center justify-center aspect-square">🍇</button>
+                            <button onclick="checkPatternAnswer(3)" id="patternOpt3" class="btn-spy p-4 md:p-6 rounded-2xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-sm text-5xl flex items-center justify-center aspect-square">🍊</button>
+                        </div>
+                    </div>
+
+                    <!-- LEVEL 7 CONTAINER: Clue Counter -->
+                    <div id="level7Container" class="w-full flex flex-col items-center space-y-6 hidden animate-pop">
+                        <div class="text-center">
+                            <h2 class="spy-hud-text text-xl md:text-2xl font-black text-slate-100">🔢 Sandbox Asset Counter</h2>
+                            <p id="clueCounterPrompt" class="text-xs md:text-sm text-slate-400 mt-1">Audit the specific target asset count currently loaded in the sandbox!</p>
+                        </div>
+                        <!-- Clue sandbox -->
+                        <div id="clueCounterSandbox" class="p-6 bg-slate-950 border-2 border-cyan-500/20 rounded-[2rem] shadow-inner w-full max-w-md min-h-[140px] flex flex-wrap items-center justify-center gap-4 text-5xl">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <!-- Choice numbers -->
+                        <div class="grid grid-cols-4 gap-4 w-full max-w-md">
+                            <button onclick="checkClueCountAnswer(0)" id="clueCountBtn0" class="btn-spy p-4 rounded-2xl bg-slate-900 border-2 border-cyan-400/40 text-2xl font-black hover:border-cyan-400 transition-all text-slate-100">3</button>
+                            <button onclick="checkClueCountAnswer(1)" id="clueCountBtn1" class="btn-spy p-4 rounded-2xl bg-slate-900 border-2 border-cyan-400/40 text-2xl font-black hover:border-cyan-400 transition-all text-slate-100">4</button>
+                            <button onclick="checkClueCountAnswer(2)" id="clueCountBtn2" class="btn-spy p-4 rounded-2xl bg-slate-900 border-2 border-cyan-400/40 text-2xl font-black hover:border-cyan-400 transition-all text-slate-100">5</button>
+                            <button onclick="checkClueCountAnswer(3)" id="clueCountBtn3" class="btn-spy p-4 rounded-2xl bg-slate-900 border-2 border-cyan-400/40 text-2xl font-black hover:border-cyan-400 transition-all text-slate-100">6</button>
+                        </div>
+                    </div>
+
+                    <!-- LEVEL 10 CONTAINER: Crack the Vault (Extreme - 5 Step Pattern, 3x3 Grid) -->
+                    <div id="level10Container" class="w-full flex flex-col items-center space-y-6 hidden animate-pop">
+                        <div class="text-center">
+                            <h2 class="spy-hud-text text-xl md:text-2xl font-black text-rose-400">🔑 Level 10: Sync Final Vault Keys</h2>
+                            <p class="text-xs md:text-sm text-slate-400 mt-1">Trace the exact 5-symbol sequence onto the terminal grid to bypass the main security engine!</p>
+                        </div>
+                        <!-- Target Code display -->
+                        <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-3 bg-slate-950 p-4 rounded-3xl border border-rose-500/20">
+                            <span class="spy-label-text text-xs font-bold text-rose-400 tracking-wider">DECRYPTION CYPHER SEQUENCE:</span>
+                            <div id="vaultCodeDisplay" class="flex space-x-2">
+                                <!-- dynamic cypher sequence display -->
+                            </div>
+                        </div>
+                        <!-- Lock grid (3x3 grid - 9 items) -->
+                        <div id="vaultKeysGrid" class="grid grid-cols-3 gap-3 p-4 bg-slate-950 border border-cyan-500/20 rounded-[2rem] shadow-lg w-full max-w-[340px] aspect-square">
+                            <!-- 9 buttons populated dynamically -->
+                        </div>
+                        <!-- Interactive progress dots -->
+                        <div id="vaultProgressDots" class="flex space-x-3">
+                            <span class="w-4 h-4 rounded-full bg-slate-800"></span>
+                            <span class="w-4 h-4 rounded-full bg-slate-800"></span>
+                            <span class="w-4 h-4 rounded-full bg-slate-800"></span>
+                            <span class="w-4 h-4 rounded-full bg-slate-800"></span>
+                            <span class="w-4 h-4 rounded-full bg-slate-800"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer elements inside Gameplay: Progress indicator -->
+                <div class="flex items-center justify-between pt-4 border-t-2 border-cyan-500/20 mt-6 text-sm font-bold text-slate-400">
+                    <span class="spy-label-text tracking-widest text-xs">DECRYPTION ENGINE: ACTIVE</span>
+                    <span id="subTaskProgress" class="spy-hud-text text-cyan-400 text-xs">TASK 1/3</span>
+                </div>
+            </div>
+
+            <!-- 4. GAME OVER SCREEN (Mission Terminated) -->
+            <div id="gameOverScreen" class="hidden spy-dashboard rounded-[2.5rem] p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-8 animate-pop w-full relative">
+                <div class="space-y-4">
+                    <div class="w-20 h-20 rounded-full bg-rose-950 border-2 border-rose-500 flex items-center justify-center mx-auto text-rose-500 text-4xl mb-2 animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <span class="spy-label-text text-sm font-black tracking-widest text-rose-500 uppercase bg-rose-950/80 border border-rose-800 px-4 py-1.5 rounded-full">MISSION SUSPENDED</span>
+                    <h2 class="spy-hud-text text-3xl md:text-5xl font-black text-slate-100">SYSTEM OFFLINE</h2>
+                    <p id="gameOverMessage" class="text-slate-400 max-w-md mx-auto text-xs md:text-sm">
+                        You ran out of shield charges on this sector, but training makes perfect! Recharge systems and re-initialize.
+                    </p>
+                </div>
+
+                <!-- Score Board Summary -->
+                <div class="flex justify-center space-x-8 py-4 border-y-2 border-cyan-500/20 w-full max-w-sm">
+                    <div>
+                        <span class="spy-label-text block text-xs font-bold text-slate-400 uppercase tracking-widest">FINAL EXP</span>
+                        <span id="finalScoreText" class="spy-hud-text text-3xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">0</span>
+                    </div>
+                    <div>
+                        <span class="spy-label-text block text-xs font-bold text-slate-400 uppercase tracking-widest">SECTOR COMPLETED</span>
+                        <span id="finalLevelText" class="spy-hud-text text-3xl font-black text-rose-400 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]">Level 1</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full justify-center">
+                    <button onclick="startGame()" class="btn-spy px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-black text-md tracking-wider shadow-lg shadow-cyan-500/25 spy-hud-text">
+                        🔄 RELOAD CONSOLE
+                    </button>
+                    <button onclick="goToStartPage()" class="btn-spy px-8 py-4 rounded-2xl bg-slate-900 border-2 border-cyan-500/40 text-cyan-400 font-bold text-md hover:bg-cyan-950/20 transition-all shadow-md">
+                        🏠 CORE MAINBOARD
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5. VICTORY SCREEN (Grand Master Decryption Core Verified) -->
+            <div id="victoryScreen" class="hidden spy-dashboard rounded-[2.5rem] p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-8 animate-pop w-full relative">
+                <div class="space-y-4">
+                    <div class="w-24 h-24 rounded-full bg-cyan-950/80 border-2 border-cyan-400 flex items-center justify-center mx-auto text-cyan-400 text-5xl mb-2 animate-subtle-float shadow-[0_0_30px_rgba(6,182,212,0.6)]">
+                        👑
+                    </div>
+                    <span class="spy-label-text text-sm font-black tracking-widest text-cyan-400 uppercase bg-cyan-950/80 border border-cyan-800 px-4 py-1.5 rounded-full">🏆 CYBER SYSTEM CLEARANCE APPROVED</span>
+                    <h2 class="spy-hud-text text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400">GRAND AGENT VERIFIED!</h2>
+                    <p class="text-slate-400 max-w-md mx-auto text-xs md:text-sm">
+                        Absolute tactical dominance. You completed every single decryption matrix. The agency commands you for outstanding recognition logic!
+                    </p>
+                </div>
+
+                <!-- Star Medal System -->
+                <div class="flex flex-col items-center space-y-2">
+                    <div class="flex items-center space-x-3 text-5xl" id="starsContainer">
+                        <!-- Instantiated dynamically -->
+                    </div>
+                    <span id="starCaption" class="spy-hud-text text-sm font-black tracking-wide text-cyan-400 uppercase">Star Badge</span>
+                </div>
+
+                <!-- Grand Score Details -->
+                <div class="flex justify-center space-x-8 py-4 border-y-2 border-cyan-500/20 w-full max-w-sm">
+                    <div>
+                        <span class="spy-label-text block text-xs font-bold text-slate-400 uppercase tracking-widest">TOTAL SCORE EXP</span>
+                        <span id="victoryScoreText" class="spy-hud-text text-3xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">0</span>
+                    </div>
+                    <div>
+                        <span class="spy-label-text block text-xs font-bold text-slate-400 uppercase tracking-widest">SECURITY RANK</span>
+                        <span id="victoryStatusText" class="spy-hud-text text-xl font-black text-rose-400 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]">Star Detective</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full justify-center">
+                    <button onclick="startGame()" class="btn-spy px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-rose-500 text-white font-black text-md tracking-wider shadow-lg shadow-cyan-500/25 spy-hud-text">
+                        🎮 REPLAY MATRIX
+                    </button>
+                    <button onclick="goToStartPage()" class="btn-spy px-8 py-4 rounded-2xl bg-slate-900 border-2 border-cyan-500/40 text-cyan-400 font-bold text-md hover:bg-cyan-950/20 transition-all shadow-md">
+                        🏠 SYSTEM HOME
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER STATUS -->
+    <footer class="w-full text-center py-4 text-[10px] md:text-xs font-bold text-slate-500 z-10 spy-label-text tracking-widest uppercase">
+        🕵️‍♂️ WARNING: COGNITIVE DECRYPTION AGENT MODULES ARE ACTIVE • CONFIDENTIAL TO SPY AGENCY Younglings
+    </footer>
+
+    <!-- INSTRUCTIONS MODAL -->
+    <div id="instructionsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-pop">
+        <div class="spy-dashboard w-full max-w-2xl rounded-[2rem] p-6 md:p-8 space-y-4 relative border-rose-500/50">
+            <button onclick="closeInstructions()" class="absolute top-4 right-4 text-slate-400 hover:text-rose-400 text-2xl active:scale-95 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="text-center space-y-1">
+                <h3 class="spy-hud-text text-2xl font-black text-rose-400 tracking-wider">AGENT HANDBOOK: PROTOCOL UNLOCKED 🗺️</h3>
+                <p class="spy-label-text text-xs text-slate-400 font-bold tracking-widest">STABLE SECURE TRANSMISSION RECEIVED</p>
+            </div>
+
+            <!-- Scrollable level breakdown -->
+            <div class="space-y-3 text-xs max-h-[300px] overflow-y-auto pr-2">
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">🍕 Level 1: Odd One Out</span>
+                    <p class="text-slate-400">Scan and locate the outlier emoji block that breaks categorical rules.</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">🏠 Level 2: Sync Coordinates</span>
+                    <p class="text-slate-400">Correlate the traveler element to its designated habitat target node.</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">👯‍♀️ Level 3: Split Match Signal</span>
+                    <p class="text-slate-400">Match the singular shared visual signal element duplicated between both monitors.</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">🔎 Level 4: Grid Sector Scan</span>
+                    <p class="text-slate-400">Inspect the dynamic sector mesh instantly and isolate the specified target asset!</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">🧩 Level 5: Pattern Sequence</span>
+                    <p class="text-slate-400">Diagnose multi-level repeating algorithms (ABBA/ABC) and tap the pattern modifier.</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">🎨 Level 6: Magic Color Fusion</span>
+                    <p class="text-slate-400">Synthesize base primary colors and locate the fused compound block!</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">🔢 Level 7: Sandbox Asset Counter</span>
+                    <p class="text-slate-400">Audit the quantity of custom assets within the virtual workspace sandbox immediately.</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">🌈 Level 8: Rebus Clues</span>
+                    <p class="text-slate-400">Synthesize symbolic visual components logically to decrypt the resulting compound concept.</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-cyan-500/20">
+                    <span class="spy-hud-text font-black text-cyan-400 text-sm block">🔥 Level 9: Polar Opposites</span>
+                    <p class="text-slate-400">Trace and identify the perfect polar opposite card to pass the firewall.</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-900 border border-rose-500/40">
+                    <span class="spy-hud-text font-black text-rose-400 text-sm block">🔑 Level 10: Ultimate Vault Keys</span>
+                    <p class="text-slate-400">Follow the extreme memory stream. Tap the exact 5-symbol sequence onto the 3x3 security grid!</p>
+                </div>
+            </div>
+
+            <div class="pt-2 border-t-2 border-cyan-500/20 flex flex-col sm:flex-row sm:justify-between items-center gap-3 text-xs font-bold text-slate-400">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-shield-heart text-rose-500 text-xl animate-pulse"></i>
+                    <span class="spy-label-text tracking-widest text-[10px]">SHIELDS REGENERATE AT THE START OF EVERY NEW MISSION SECTOR!</span>
+                </div>
+                <button onclick="closeInstructions()" class="btn-spy px-6 py-3 rounded-xl bg-cyan-500 text-white font-black transition-all shadow-md spy-hud-text text-xs">
+                    ACKNOWLEDGE PROTOCOL 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Holographic Alert Toast Overlay -->
+    <div id="toast" class="spy-hud-text fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-2xl bg-slate-950 border border-cyan-400 text-cyan-400 font-bold text-xs tracking-widest shadow-lg shadow-cyan-500/20 opacity-0 pointer-events-none transition-all duration-300 z-50 uppercase"></div>
+
+    <!-- JavaScript Game Logic Controller -->
+    <script>
+        let audioEnabled = true;
+        let synth = null;
+
+        // High-fidelity auditory response system via Tone.js synthesizer
+        function initAudio() {
+            if (!synth) {
+                synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.05, decay: 0.1, sustain: 0.3, release: 0.4 }
+                }).toDestination();
+                synth.volume.value = -8;
+            }
+        }
+
+        function playTone(note, duration = "8n") {
+            if (!audioEnabled) return;
+            initAudio();
+            try {
+                synth.triggerAttackRelease(note, duration);
+            } catch (e) {
+                console.log("Audio play context initialized inside user interaction boundary.");
+            }
+        }
+
+        function playSuccessSound() {
+            if (!audioEnabled) return;
+            initAudio();
+            const now = Tone.now();
+            synth.triggerAttackRelease("C5", "16n", now);
+            synth.triggerAttackRelease("E5", "16n", now + 0.06);
+            synth.triggerAttackRelease("G5", "16n", now + 0.12);
+            synth.triggerAttackRelease("C6", "8n", now + 0.18);
+        }
+
+        function playFailSound() {
+            if (!audioEnabled) return;
+            initAudio();
+            const now = Tone.now();
+            synth.triggerAttackRelease("A3", "8n", now);
+            synth.triggerAttackRelease("Eb3", "4n", now + 0.1);
+        }
+
+        function playLevelCompleteSound() {
+            if (!audioEnabled) return;
+            initAudio();
+            const now = Tone.now();
+            synth.triggerAttackRelease("E4", "8n", now);
+            synth.triggerAttackRelease("A4", "8n", now + 0.08);
+            synth.triggerAttackRelease("C5", "8n", now + 0.16);
+            synth.triggerAttackRelease("E5", "8n", now + 0.24);
+            synth.triggerAttackRelease("A5", "4n", now + 0.32);
+        }
+
+        function playVictoryFanfare() {
+            if (!audioEnabled) return;
+            initAudio();
+            const now = Tone.now();
+            synth.triggerAttackRelease(["C4", "E4", "G4"], "4n", now);
+            synth.triggerAttackRelease(["F4", "A4", "C5"], "4n", now + 0.2);
+            synth.triggerAttackRelease(["G4", "B4", "D5"], "4n", now + 0.4);
+            synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "2n", now + 0.6);
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const audioIcon = document.getElementById("audioIcon");
+            if (audioEnabled) {
+                audioIcon.className = "fa-solid fa-volume-high text-lg";
+                showToast("🔊 HUD Sound Modules Enabled");
+                playTone("C5", "8n");
+            } else {
+                audioIcon.className = "fa-solid fa-volume-xmark text-lg";
+                showToast("🔇 Sound Modules Silenced");
+            }
+        }
+
+        let gameActive = false;
+        let currentLevel = 1;
+        let lives = 3;
+        let score = 0;
+        let timerInterval = null;
+        let timeLeft = 30;
+        let currentSubTask = 0; 
+        const totalSubTasks = 3;
+
+        let lvl1Queue = [], lvl1Index = 0;
+        let lvl2Queue = [], lvl2Index = 0;
+        let lvl5Queue = [], lvl5Index = 0;
+        let lvl6Queue = [], lvl6Index = 0;
+        let lvl8Queue = [], lvl8Index = 0;
+        let lvl9Queue = [], lvl9Index = 0;
+
+        let lastLvl3Shared = "";
+        let lastLvl4Target = "";
+        let lastLvl7Target = "";
+        let lastLvl10Seq = [];
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // --- LEVEL DATABASES ---
+        const lvl1Database = [
+            { prompt: "Isolate the non-sweet outlier block! 🧁", cards: ["🧁", "🍩", "🍪", "🥦"], correctIndex: 3 },
+            { prompt: "Identify the vehicle breaking non-ride classifications! 🚗", cards: ["🚗", "🚲", "🚂", "🍌"], correctIndex: 3 },
+            { prompt: "Detect the element that isn't of biological animal properties! 🦁", cards: ["🦁", "🎒", "🦊", "🐼"], correctIndex: 1 },
+            { prompt: "Pinpoint the non-celestial signal outlier! 🌌", cards: ["🌟", "🍕", "☀️", "🌙"], correctIndex: 1 },
+            { prompt: "Which tool does not conform to classroom requirements? ✏️", cards: ["✏️", "📓", "📐", "🦈"], correctIndex: 3 }
+        ];
+        let lvl1CurrentData = null;
+
+        const lvl2Database = [
+            {
+                subject: "👨‍🚀", name: "Astronaut",
+                options: [
+                    { text: "🚀 Outer Space Node", isCorrect: true },
+                    { text: "🌳 Forest Node", isCorrect: false },
+                    { text: "🌊 Coral Reef Node", isCorrect: false },
+                    { text: "🚒 Station Node", isCorrect: false }
+                ]
+            },
+            {
+                subject: "🐝", name: "Honey Bee",
+                options: [
+                    { text: "🏙️ Urban Grid", isCorrect: false },
+                    { text: "🍯 Hive Base", isCorrect: true },
+                    { text: "❄️ Ice Cap", isCorrect: false },
+                    { text: "🌋 Volcano", isCorrect: false }
+                ]
+            },
+            {
+                subject: "🐠", name: "Clownfish",
+                options: [
+                    { text: "🏠 Land Kennel", isCorrect: false },
+                    { text: "🌵 Sandy Desert", isCorrect: false },
+                    { text: "🌊 Coral Basin", isCorrect: true },
+                    { text: "🏕️ Camp Terrain", isCorrect: false }
+                ]
+            },
+            {
+                subject: "🐒", name: "Monkey",
+                options: [
+                    { text: "🍌 Canopy Trees", isCorrect: true },
+                    { text: "🏰 Castle Keeps", isCorrect: false },
+                    { text: "🚂 Railway Rails", isCorrect: false },
+                    { text: "🛒 Marketplace", isCorrect: false }
+                ]
+            }
+        ];
+        let lvl2CurrentData = null;
+
+        const spyEmojiPool = [
+            "🦁", "🐯", "🐼", "🐸", "🐷", "🦊", "🐔", "🐨", "🐒", 
+            "🚗", "🚒", "🚀", "⛵", "🚁", "🚲", "🚜", "🛸", "🚂",
+            "🍎", "🍌", "🍇", "🍉", "🍓", "🍒", "🍍", "🥑", "🥕",
+            "⚽", "🎸", "🍦", "🍭", "🍩", "🎁", "🎈", "🌈", "🏰"
+        ];
+        let lvl3SharedEmoji = "";
+        let lvl3LeftList = [];
+        let lvl3RightList = [];
+        let lvl4Target = "";
+        let lvl4Pool = [];
+
+        const lvl5Database = [
+            { seq: ["🦊", "🐰", "🐰", "🦊", "🐰"], next: "🐰", options: ["🦊", "🐰", "🦁", "🐼"] },
+            { seq: ["🔴", "🔵", "🟡", "🔴", "🔵"], next: "🟡", options: ["🔴", "🔵", "🟡", "🟢"] },
+            { seq: ["⭐", "⭐", "🌙", "⭐", "⭐"], next: "🌙", options: ["⭐", "🌙", "☀️", "☁️"] },
+            { seq: ["🚗", "🚗", "✈️", "✈️", "🚗"], next: "🚗", options: ["🚗", "✈️", "🚲", "🚂"] },
+            { seq: ["🎈", "🎁", "🧁", "🎈", "🎁"], next: "🧁", options: ["🎈", "🎁", "🧁", "🍭"] },
+            { seq: ["🌱", "🌿", "🌳", "🌱", "🌿"], next: "🌳", options: ["🌱", "🌿", "🌳", "🍎"] }
+        ];
+        let lvl5CurrentData = null;
+
+        const lvl6Database = [
+            { prompt: "FUSE: Red 🔴 and Yellow 🟡!", cards: ["🟠", "🟢", "🟣", "🔵"], correctIndex: 0 },
+            { prompt: "FUSE: Blue 🔵 and Yellow 🟡!", cards: ["🔴", "🟢", "🟠", "🟣"], correctIndex: 1 },
+            { prompt: "FUSE: Red 🔴 and Blue 🔵!", cards: ["🟢", "🟡", "🟣", "⚫"], correctIndex: 2 },
+            { prompt: "FUSE: Red 🔴 and White ⚪!", cards: ["🌸", "🟢", "🟤", "🟣"], correctIndex: 0 },
+            { prompt: "FUSE: Black ⚫ and White ⚪!", cards: ["🟡", "🔵", "🔘", "🟠"], correctIndex: 2 }
+        ];
+        let lvl6CurrentData = null;
+
+        const targetEmojis = ["🎈", "⭐", "🍎", "🧁", "🐱", "🚗"];
+        const distractorEmojis = ["🥦", "🧱", "🌵", "👟", "🌂", "🔒"];
+        let lvl7TargetCount = 0;
+        let lvl7TargetChar = "";
+
+        const lvl8Database = [
+            {
+                subject: "❄️ + ⛄", name: "Determine weather product",
+                options: [
+                    { text: "🥶 Winter Grid", isCorrect: true },
+                    { text: "🔥 Beach Sector", isCorrect: false },
+                    { text: "🚒 Flight Line", isCorrect: false },
+                    { text: "🦖 Mesozoic", isCorrect: false }
+                ]
+            },
+            {
+                subject: "🎨 + 🖌️", name: "Determine craft output",
+                options: [
+                    { text: "🖼️ Canvas Artifact", isCorrect: true },
+                    { text: "🎶 Audio Track", isCorrect: false },
+                    { text: "🍰 Sweet Paste", isCorrect: false },
+                    { text: "⚽ Sports Unit", isCorrect: false }
+                ]
+            },
+            {
+                subject: "🥛 + 🍪", name: "Identify systemic ingestion event",
+                options: [
+                    { text: "😋 Sweet Fuel", isCorrect: true },
+                    { text: "🥦 Plant Matter", isCorrect: false },
+                    { text: "🛌 Sleep State", isCorrect: false },
+                    { text: "🧼 Aqueous Bath", isCorrect: false }
+                ]
+            },
+            {
+                subject: "🌧️ + ☀️", name: "Detect meteorological phenomenon",
+                options: [
+                    { text: "🌈 Prismatic Rainbow", isCorrect: true },
+                    { text: "❄️ Ice Storm", isCorrect: false },
+                    { text: "🌪️ Heavy Cyclone", isCorrect: false },
+                    { text: "🏜️ Hot Desert", isCorrect: false }
+                ]
+            }
+        ];
+        let lvl8CurrentData = null;
+
+        const lvl9Database = [
+            { prompt: "Match the perfect opposite of HOT 🔥", cards: ["❄️ Cold", "☀️ Sun", "💥 Explode", "🦖 Dino"], correctIndex: 0 },
+            { prompt: "Match the perfect opposite of DAYTIME ☀️", cards: ["☁️ Cloud", "🌙 Night", "🌈 Rainbow", "🎈 Balloon"], correctIndex: 1 },
+            { prompt: "Match the perfect opposite of HAPPY 😄", cards: ["🥳 Party", "😭 Sad", "🍔 Hungry", "😴 Sleepy"], correctIndex: 1 },
+            { prompt: "Match the perfect opposite of BIG 🐘", cards: ["🦁 Lion", "🦕 Dino", "🐳 Whale", "🐭 Small"], correctIndex: 3 }
+        ];
+        let lvl9CurrentData = null;
+
+        const vaultEmojiPool = ["🔑", "🌟", "🎈", "🎁", "🐱", "🍉", "🍪", "🚀", "🍦"];
+        let lvl10TargetSeq = [];
+        let lvl10UserTapCount = 0;
+
+        // Custom micro-particle confetti burst system
+        function triggerConfettiBurst() {
+            const frame = document.getElementById("gameFrame");
+            const rect = frame.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const colors = ['#06b6d4', '#f43f5e', '#6366f1', '#fbbf24', '#22c55e'];
+
+            for (let i = 0; i < 40; i++) {
+                const particle = document.createElement("div");
+                particle.className = "confetti-particle";
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.left = `${centerX}px`;
+                particle.style.top = `${centerY}px`;
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 150 + 50;
+                const destX = Math.cos(angle) * distance;
+                const destY = Math.sin(angle) * distance;
+
+                frame.appendChild(particle);
+
+                particle.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${destX}px, ${destY}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 800 + Math.random() * 400,
+                    easing: 'cubic-bezier(0.1, 0.8, 0.25, 1)',
+                    fill: 'forwards'
+                });
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 1200);
+            }
+        }
+
+        function startGame() {
+            initAudio();
+            playTone("G4", "8n");
+            
+            score = 0;
+            currentLevel = 1;
+            currentSubTask = 0;
+            lives = 3; 
+            gameActive = true;
+            
+            document.getElementById("startScreen").classList.add("hidden");
+            document.getElementById("gameOverScreen").classList.add("hidden");
+            document.getElementById("victoryScreen").classList.add("hidden");
+            document.getElementById("gameplayScreen").classList.remove("hidden");
+            
+            updateHeartsUI();
+            updateScoreUI();
+            loadLevel(currentLevel);
+        }
+
+        // Play the "scanning/decrypting" animation overlay between missions
+        function triggerDecryptingTransition(callback) {
+            const overlay = document.getElementById("decryptingOverlay");
+            const bar = document.getElementById("decryptProgressBar");
+            const title = document.getElementById("decryptingTitle");
+            
+            overlay.classList.remove("hidden");
+            title.innerText = `DECRYPTING LEVEL ${currentLevel} INTEL...`;
+            bar.style.width = "0%";
+            
+            playTone("A4", "16n");
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                bar.style.width = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    overlay.classList.add("hidden");
+                    if (callback) callback();
+                }
+            }, 80);
+        }
+
+        function loadLevel(lvlNum) {
+            clearInterval(timerInterval);
+            currentLevel = lvlNum;
+            lives = 3; 
+            
+            document.getElementById("levelBadge").innerText = `MISSION ${lvlNum}`;
+            updateHeartsUI();
+
+            triggerDecryptingTransition(() => {
+                // Initialize/Shuffle level queues
+                if (lvlNum === 1) { lvl1Queue = shuffleArray(lvl1Database); lvl1Index = 0; }
+                else if (lvlNum === 2) { lvl2Queue = shuffleArray(lvl2Database); lvl2Index = 0; }
+                else if (lvlNum === 5) { lvl5Queue = shuffleArray(lvl5Database); lvl5Index = 0; }
+                else if (lvlNum === 6) { lvl6Queue = shuffleArray(lvl6Database); lvl6Index = 0; }
+                else if (lvlNum === 8) { lvl8Queue = shuffleArray(lvl8Database); lvl8Index = 0; }
+                else if (lvlNum === 9) { lvl9Queue = shuffleArray(lvl9Database); lvl9Index = 0; }
+                
+                // Hide all individual container panels
+                document.getElementById("levelCards4Container").classList.add("hidden");
+                document.getElementById("levelTargetOptionsContainer").classList.add("hidden");
+                document.getElementById("level3Container").classList.add("hidden");
+                document.getElementById("level4Container").classList.add("hidden");
+                document.getElementById("level5Container").classList.add("hidden");
+                document.getElementById("level7Container").classList.add("hidden");
+                document.getElementById("level10Container").classList.add("hidden");
+                
+                // Route viewport display modules
+                if (lvlNum === 1) {
+                    document.getElementById("levelCards4Container").classList.remove("hidden");
+                    timeLeft = 35;
+                    startLevel1Task();
+                } else if (lvlNum === 2) {
+                    document.getElementById("levelTargetOptionsContainer").classList.remove("hidden");
+                    timeLeft = 30;
+                    startLevel2Task();
+                } else if (lvlNum === 3) {
+                    document.getElementById("level3Container").classList.remove("hidden");
+                    timeLeft = 25;
+                    startLevel3Task();
+                } else if (lvlNum === 4) {
+                    document.getElementById("level4Container").classList.remove("hidden");
+                    timeLeft = 20;
+                    startLevel4Task();
+                } else if (lvlNum === 5) {
+                    document.getElementById("level5Container").classList.remove("hidden");
+                    timeLeft = 30;
+                    startLevel5Task();
+                } else if (lvlNum === 6) {
+                    document.getElementById("levelCards4Container").classList.remove("hidden");
+                    timeLeft = 30;
+                    startLevel6Task();
+                } else if (lvlNum === 7) {
+                    document.getElementById("level7Container").classList.remove("hidden");
+                    timeLeft = 35;
+                    startLevel7Task();
+                } else if (lvlNum === 8) {
+                    document.getElementById("levelTargetOptionsContainer").classList.remove("hidden");
+                    timeLeft = 30;
+                    startLevel8Task();
+                } else if (lvlNum === 9) {
+                    document.getElementById("levelCards4Container").classList.remove("hidden");
+                    timeLeft = 30;
+                    startLevel9Task();
+                } else if (lvlNum === 10) {
+                    document.getElementById("level10Container").classList.remove("hidden");
+                    timeLeft = 20;
+                    startLevel10Task();
+                }
+                
+                startTimer();
+            });
+        }
+
+        function triggerDamage() {
+            lives--;
+            updateHeartsUI();
+            playFailSound();
+            
+            const gameplayPanel = document.getElementById("gameplayScreen");
+            gameplayPanel.classList.add("wrong-red");
+            setTimeout(() => gameplayPanel.classList.remove("wrong-red"), 500);
+
+            if (lives <= 0) {
+                gameOver();
+            } else {
+                showToast("💔 Security firewall hit! Loading replacement node!");
+                // Direct alternate question on mistakes
+                if (currentLevel === 1) startLevel1Task();
+                else if (currentLevel === 2) startLevel2Task();
+                else if (currentLevel === 3) startLevel3Task();
+                else if (currentLevel === 4) startLevel4Task();
+                else if (currentLevel === 5) startLevel5Task();
+                else if (currentLevel === 6) startLevel6Task();
+                else if (currentLevel === 7) startLevel7Task();
+                else if (currentLevel === 8) startLevel8Task();
+                else if (currentLevel === 9) startLevel9Task();
+                else if (currentLevel === 10) startLevel10Task();
+            }
+        }
+
+        function advanceTask() {
+            currentSubTask++;
+            triggerConfettiBurst();
+            playSuccessSound();
+            
+            score += Math.max(10, Math.floor(timeLeft * 10));
+            updateScoreUI();
+
+            const gameplayPanel = document.getElementById("gameplayScreen");
+            gameplayPanel.classList.add("correct-cyan");
+            setTimeout(() => gameplayPanel.classList.remove("correct-cyan"), 500);
+
+            if (currentSubTask >= totalSubTasks) {
+                playLevelCompleteSound();
+                currentSubTask = 0;
+                if (currentLevel < 10) {
+                    showToast(`🌟 SECTOR BYPASSED! SYNCING TO MISSION ${currentLevel + 1}`);
+                    loadLevel(currentLevel + 1);
+                } else {
+                    victory();
+                }
+            } else {
+                if (currentLevel === 1) startLevel1Task();
+                else if (currentLevel === 2) startLevel2Task();
+                else if (currentLevel === 3) startLevel3Task();
+                else if (currentLevel === 4) startLevel4Task();
+                else if (currentLevel === 5) startLevel5Task();
+                else if (currentLevel === 6) startLevel6Task();
+                else if (currentLevel === 7) startLevel7Task();
+                else if (currentLevel === 8) startLevel8Task();
+                else if (currentLevel === 9) startLevel9Task();
+                else if (currentLevel === 10) startLevel10Task();
+            }
+        }
+
+        // LEVEL 1: Odd One Out Setup
+        function startLevel1Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            if (!lvl1Queue || lvl1Index >= lvl1Queue.length) {
+                lvl1Queue = shuffleArray(lvl1Database);
+                lvl1Index = 0;
+            }
+            lvl1CurrentData = lvl1Queue[lvl1Index];
+            lvl1Index++;
+            
+            document.getElementById("cards4Title").innerText = "🍕 Odd One Out";
+            document.getElementById("cards4Prompt").innerText = lvl1CurrentData.prompt;
+            
+            for (let i = 0; i < 4; i++) {
+                const cardEl = document.getElementById(`cards4Btn${i}`);
+                cardEl.className = "btn-spy p-6 rounded-3xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-md active:scale-95 text-6xl flex items-center justify-center aspect-square";
+                cardEl.innerText = lvl1CurrentData.cards[i];
+            }
+        }
+
+        function checkCards4Answer(selectedIndex) {
+            if (currentLevel === 1) {
+                if (selectedIndex === lvl1CurrentData.correctIndex) advanceTask();
+                else triggerDamage();
+            } else if (currentLevel === 6) {
+                if (selectedIndex === lvl6CurrentData.correctIndex) advanceTask();
+                else triggerDamage();
+            } else if (currentLevel === 9) {
+                if (selectedIndex === lvl9CurrentData.correctIndex) advanceTask();
+                else triggerDamage();
+            }
+        }
+
+        // LEVEL 2: Association Setup
+        function startLevel2Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            if (!lvl2Queue || lvl2Index >= lvl2Queue.length) {
+                lvl2Queue = shuffleArray(lvl2Database);
+                lvl2Index = 0;
+            }
+            lvl2CurrentData = lvl2Queue[lvl2Index];
+            lvl2Index++;
+            
+            document.getElementById("targetOptionsTitle").innerText = "🏠 Coordinated Association";
+            document.getElementById("targetOptionsPrompt").innerText = "Trace the target element to its home node!";
+            document.getElementById("targetOptionsIcon").innerText = lvl2CurrentData.subject;
+            document.getElementById("targetOptionsName").innerText = lvl2CurrentData.name;
+            
+            const shuffledOptions = [...lvl2CurrentData.options].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < 4; i++) {
+                const optBtn = document.getElementById(`targetOptionsOpt${i}`);
+                optBtn.innerText = shuffledOptions[i].text;
+                optBtn.setAttribute("data-correct", shuffledOptions[i].isCorrect);
+            }
+        }
+
+        function checkTargetOptionsAnswer(index) {
+            const btn = document.getElementById(`targetOptionsOpt${index}`);
+            const isCorrect = btn.getAttribute("data-correct") === "true";
+            
+            if (isCorrect) advanceTask();
+            else triggerDamage();
+        }
+
+        // LEVEL 3: Twin Finder Setup
+        function startLevel3Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            let poolShuffled = [...spyEmojiPool].sort(() => Math.random() - 0.5);
+            if (poolShuffled[0] === lastLvl3Shared) {
+                poolShuffled.push(poolShuffled.shift());
+            }
+            
+            lvl3SharedEmoji = poolShuffled[0];
+            lastLvl3Shared = lvl3SharedEmoji;
+            
+            const distinctPool = poolShuffled.slice(1);
+            
+            lvl3LeftList = [lvl3SharedEmoji, distinctPool[0], distinctPool[1], distinctPool[2]].sort(() => Math.random() - 0.5);
+            lvl3RightList = [lvl3SharedEmoji, distinctPool[3], distinctPool[4], distinctPool[5]].sort(() => Math.random() - 0.5);
+            
+            renderTwinFinderGrid();
+        }
+
+        function renderTwinFinderGrid() {
+            const leftGrid = document.getElementById("lvl3LeftGrid");
+            const rightGrid = document.getElementById("lvl3RightGrid");
+            leftGrid.innerHTML = "";
+            rightGrid.innerHTML = "";
+            
+            lvl3LeftList.forEach(emoji => {
+                const btn = document.createElement("button");
+                btn.className = "btn-spy p-4 text-4xl bg-slate-900 border border-cyan-500/30 hover:border-cyan-400 rounded-2xl transition-all aspect-square flex items-center justify-center";
+                btn.innerText = emoji;
+                btn.onclick = () => checkTwinMatch(emoji);
+                leftGrid.appendChild(btn);
+            });
+            
+            lvl3RightList.forEach(emoji => {
+                const btn = document.createElement("button");
+                btn.className = "btn-spy p-4 text-4xl bg-slate-900 border border-cyan-500/30 hover:border-cyan-400 rounded-2xl transition-all aspect-square flex items-center justify-center";
+                btn.innerText = emoji;
+                btn.onclick = () => checkTwinMatch(emoji);
+                rightGrid.appendChild(btn);
+            });
+        }
+
+        function checkTwinMatch(selectedEmoji) {
+            if (selectedEmoji === lvl3SharedEmoji) advanceTask();
+            else triggerDamage();
+        }
+
+        // LEVEL 4: Super Spy Grid Setup
+        function startLevel4Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            let gridShuffled = [...spyEmojiPool].sort(() => Math.random() - 0.5);
+            if (gridShuffled[0] === lastLvl4Target) {
+                gridShuffled.push(gridShuffled.shift());
+            }
+            
+            lvl4Target = gridShuffled[0];
+            lastLvl4Target = lvl4Target;
+            
+            document.getElementById("lvl4TargetIcon").innerText = lvl4Target;
+            
+            const emojiNames = {
+                "🦁": "Lion", "🐯": "Tiger", "🐼": "Panda", "🐸": "Frog", "🐷": "Piggy", 
+                "🦊": "Fox", "🐔": "Chicken", "🐨": "Koala", "🐒": "Monkey", "🚗": "Car", 
+                "🚒": "Fire Truck", "🚀": "Rocket", "⛵": "Sailboat", "🚁": "Helicopter", 
+                "🚲": "Bicycle", "🚜": "Tractor", "🛸": "UFO", "🚂": "Train", "🍎": "Apple", 
+                "🍌": "Banana", "🍇": "Grapes", "🍉": "Watermelon", "🍓": "Strawberry", 
+                "🍒": "Cherries", "🍍": "Pineapple", "🥑": "Avocado", "🥕": "Carrot", "⚽": "Soccer", 
+                "🎸": "Guitar", "🍦": "Ice Cream", "🍭": "Lollipop", "🍩": "Donut", "🎁": "Present", 
+                "🎈": "Balloon", "🌈": "Rainbow", "🏰": "Castle"
+            };
+            
+            document.getElementById("lvl4TargetName").innerText = emojiNames[lvl4Target] || "Target Asset";
+            
+            lvl4Pool = [lvl4Target];
+            for (let i = 1; i < 16; i++) {
+                lvl4Pool.push(gridShuffled[i]);
+            }
+            lvl4Pool.sort(() => Math.random() - 0.5);
+            renderSpyGrid();
+        }
+
+        function renderSpyGrid() {
+            const gridContainer = document.getElementById("lvl4Grid");
+            gridContainer.innerHTML = "";
+            lvl4Pool.forEach(emoji => {
+                const btn = document.createElement("button");
+                btn.className = "w-full h-full text-3xl bg-slate-900 hover:bg-cyan-950 border border-cyan-500/30 hover:border-cyan-400 rounded-xl flex items-center justify-center transition-all active:scale-95 btn-spy";
+                btn.innerText = emoji;
+                btn.onclick = () => checkGridSelect(emoji);
+                gridContainer.appendChild(btn);
+            });
+        }
+
+        function checkGridSelect(emoji) {
+            if (emoji === lvl4Target) advanceTask();
+            else triggerDamage();
+        }
+
+        // LEVEL 5: Pattern Matcher Setup (Upgraded logic patterns)
+        function startLevel5Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            if (!lvl5Queue || lvl5Index >= lvl5Queue.length) {
+                lvl5Queue = shuffleArray(lvl5Database);
+                lvl5Index = 0;
+            }
+            lvl5CurrentData = lvl5Queue[lvl5Index];
+            lvl5Index++;
+            
+            const row = document.getElementById("patternSequenceRow");
+            row.innerHTML = "";
+            
+            lvl5CurrentData.seq.forEach(emoji => {
+                const el = document.createElement("span");
+                el.className = "text-5xl animate-subtle-float";
+                el.innerText = emoji;
+                row.appendChild(el);
+                
+                const arrow = document.createElement("span");
+                arrow.className = "text-slate-600 font-bold text-xl mx-1";
+                arrow.innerHTML = "➜";
+                row.appendChild(arrow);
+            });
+            
+            const qMark = document.createElement("span");
+            qMark.className = "text-3xl font-black text-rose-400 bg-rose-950/80 border-2 border-rose-500/40 rounded-2xl w-14 h-14 flex items-center justify-center animate-pulse";
+            qMark.innerText = "❓";
+            row.appendChild(qMark);
+            
+            const options = [...lvl5CurrentData.options];
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`patternOpt${i}`);
+                btn.innerText = options[i];
+            }
+        }
+
+        function checkPatternAnswer(index) {
+            const selected = document.getElementById(`patternOpt${index}`).innerText;
+            if (selected === lvl5CurrentData.next) advanceTask();
+            else triggerDamage();
+        }
+
+        // LEVEL 6: Magic Color Mixer Setup
+        function startLevel6Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            if (!lvl6Queue || lvl6Index >= lvl6Queue.length) {
+                lvl6Queue = shuffleArray(lvl6Database);
+                lvl6Index = 0;
+            }
+            lvl6CurrentData = lvl6Queue[lvl6Index];
+            lvl6Index++;
+            
+            document.getElementById("cards4Title").innerText = "🎨 Magic Color Fusion";
+            document.getElementById("cards4Prompt").innerText = lvl6CurrentData.prompt;
+            
+            for (let i = 0; i < 4; i++) {
+                const cardEl = document.getElementById(`cards4Btn${i}`);
+                cardEl.className = "btn-spy p-6 rounded-3xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-md active:scale-95 text-6xl flex items-center justify-center aspect-square";
+                cardEl.innerText = lvl6CurrentData.cards[i];
+            }
+        }
+
+        // LEVEL 7: Clue Counter Setup
+        function startLevel7Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            let filteredTargets = targetEmojis.filter(emoji => emoji !== lastLvl7Target);
+            lvl7TargetChar = filteredTargets[Math.floor(Math.random() * filteredTargets.length)];
+            lastLvl7Target = lvl7TargetChar;
+            
+            let distractor = distractorEmojis[Math.floor(Math.random() * distractorEmojis.length)];
+            while (distractor === lvl7TargetChar) {
+                distractor = distractorEmojis[Math.floor(Math.random() * distractorEmojis.length)];
+            }
+            
+            lvl7TargetCount = Math.floor(Math.random() * 4) + 3; // count between 3 and 6
+            let distractorCount = Math.floor(Math.random() * 3) + 3; 
+            
+            let pool = [];
+            for (let i = 0; i < lvl7TargetCount; i++) pool.push(lvl7TargetChar);
+            for (let i = 0; i < distractorCount; i++) pool.push(distractor);
+            pool.sort(() => Math.random() - 0.5);
+            
+            document.getElementById("clueCounterPrompt").innerText = `Audit the quantity of ${lvl7TargetChar} symbols current inside the terminal sandbox!`;
+            
+            const sandbox = document.getElementById("clueCounterSandbox");
+            sandbox.innerHTML = "";
+            pool.forEach(emoji => {
+                const span = document.createElement("span");
+                span.className = "animate-subtle-float p-1 transform transition-all hover:scale-110 select-none";
+                span.style.animationDelay = `${Math.random() * 0.5}s`;
+                span.innerText = emoji;
+                sandbox.appendChild(span);
+            });
+            
+            const counts = [3, 4, 5, 6];
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`clueCountBtn${i}`);
+                btn.innerText = counts[i];
+            }
+        }
+
+        function checkClueCountAnswer(index) {
+            const counts = [3, 4, 5, 6];
+            if (counts[index] === lvl7TargetCount) advanceTask();
+            else triggerDamage();
+        }
+
+        // LEVEL 8: Rebus Riddles Setup
+        function startLevel8Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            if (!lvl8Queue || lvl8Index >= lvl8Queue.length) {
+                lvl8Queue = shuffleArray(lvl8Database);
+                lvl8Index = 0;
+            }
+            lvl8CurrentData = lvl8Queue[lvl8Index];
+            lvl8Index++;
+            
+            document.getElementById("targetOptionsTitle").innerText = "🌈 Rebus Decryption";
+            document.getElementById("targetOptionsPrompt").innerText = "Synthesize base visual elements to identify the missing output node!";
+            document.getElementById("targetOptionsIcon").innerText = lvl8CurrentData.subject;
+            document.getElementById("targetOptionsName").innerText = lvl8CurrentData.name;
+            
+            const shuffledOptions = [...lvl8CurrentData.options].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < 4; i++) {
+                const optBtn = document.getElementById(`targetOptionsOpt${i}`);
+                optBtn.innerText = shuffledOptions[i].text;
+                optBtn.setAttribute("data-correct", shuffledOptions[i].isCorrect);
+            }
+        }
+
+        // LEVEL 9: Opposites Spotter Setup (Clean small text formatting)
+        function startLevel9Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            
+            if (!lvl9Queue || lvl9Index >= lvl9Queue.length) {
+                lvl9Queue = shuffleArray(lvl9Database);
+                lvl9Index = 0;
+            }
+            lvl9CurrentData = lvl9Queue[lvl9Index];
+            lvl9Index++;
+            
+            document.getElementById("cards4Title").innerText = "🔥 Polar Opposites";
+            document.getElementById("cards4Prompt").innerText = lvl9CurrentData.prompt;
+            
+            for (let i = 0; i < 4; i++) {
+                const cardEl = document.getElementById(`cards4Btn${i}`);
+                cardEl.className = "btn-spy p-4 rounded-3xl bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-center transition-all shadow-md active:scale-95 text-sm md:text-md font-bold text-slate-200 flex items-center justify-center aspect-square";
+                cardEl.innerText = lvl9CurrentData.cards[i];
+            }
+        }
+
+        // LEVEL 10: Crack the Vault Setup (5-step memory keycode matrix, 3x3 layout)
+        function startLevel10Task() {
+            document.getElementById("subTaskProgress").innerText = `TASK: ${currentSubTask + 1} / ${totalSubTasks}`;
+            lvl10UserTapCount = 0;
+            
+            const shuffled = [...vaultEmojiPool].sort(() => Math.random() - 0.5);
+            let testSeq = shuffled.slice(0, 5); 
+            
+            if (JSON.stringify(testSeq) === JSON.stringify(lastLvl10Seq)) {
+                shuffled.push(shuffled.shift());
+                testSeq = shuffled.slice(0, 5);
+            }
+            
+            lvl10TargetSeq = testSeq;
+            lastLvl10Seq = [...lvl10TargetSeq];
+            
+            const codeDisplay = document.getElementById("vaultCodeDisplay");
+            codeDisplay.innerHTML = "";
+            lvl10TargetSeq.forEach(emoji => {
+                const span = document.createElement("span");
+                span.className = "text-2xl md:text-3xl p-1 bg-slate-900 border border-cyan-500/30 rounded-xl font-bold animate-subtle-float";
+                span.innerText = emoji;
+                codeDisplay.appendChild(span);
+            });
+            
+            const finalPool = [...lvl10TargetSeq, ...shuffled.slice(5, 9)].sort(() => Math.random() - 0.5);
+            
+            const keysGrid = document.getElementById("vaultKeysGrid");
+            keysGrid.innerHTML = "";
+            finalPool.forEach(emoji => {
+                const btn = document.createElement("button");
+                btn.className = "p-2 md:p-4 text-3xl md:text-4xl bg-slate-900 hover:bg-cyan-950 border border-cyan-500/30 hover:border-cyan-400 rounded-2xl flex items-center justify-center aspect-square btn-spy active:scale-95";
+                btn.innerText = emoji;
+                btn.onclick = () => tapVaultKey(emoji);
+                keysGrid.appendChild(btn);
+            });
+            
+            updateVaultProgressDots();
+        }
+
+        function tapVaultKey(emoji) {
+            if (emoji === lvl10TargetSeq[lvl10UserTapCount]) {
+                lvl10UserTapCount++;
+                playTone("G5", "16n");
+                updateVaultProgressDots();
+                
+                if (lvl10UserTapCount === 5) advanceTask();
+            } else {
+                triggerDamage();
+            }
+        }
+
+        function updateVaultProgressDots() {
+            const dotsContainer = document.getElementById("vaultProgressDots");
+            dotsContainer.innerHTML = "";
+            for (let i = 0; i < 5; i++) {
+                const dot = document.createElement("span");
+                if (i < lvl10UserTapCount) {
+                    dot.className = "w-4 h-4 rounded-full bg-cyan-400 border border-cyan-500 scale-110 shadow-[0_0_10px_rgba(6,182,212,0.6)] transition-all";
+                } else {
+                    dot.className = "w-4 h-4 rounded-full bg-slate-800 border border-slate-700 transition-all";
+                }
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        // TIMER FUNCTIONS
+        function startTimer() {
+            updateTimerUI();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    playFailSound();
+                    gameOver("timeout");
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            document.getElementById("timerText").innerText = timeLeft;
+            const timerCircle = document.getElementById("timerCircle");
+            
+            if (timeLeft > 12) {
+                timerCircle.className = "w-16 h-16 rounded-2xl border-2 border-cyan-400 bg-cyan-950/40 text-cyan-400 flex flex-col items-center justify-center text-center transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]";
+            } else if (timeLeft > 5) {
+                timerCircle.className = "w-16 h-16 rounded-2xl border-2 border-amber-400 bg-amber-950/40 text-amber-400 flex flex-col items-center justify-center text-center transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]";
+            } else {
+                timerCircle.className = "w-16 h-16 rounded-2xl border-2 border-rose-500 bg-rose-950/60 text-rose-400 flex flex-col items-center justify-center text-center animate-pulse transition-all shadow-[0_0_20px_rgba(239,68,68,0.5)]";
+                playTone("C5", "16n"); 
+            }
+        }
+
+        function updateHeartsUI() {
+            const container = document.getElementById("livesContainer");
+            container.innerHTML = "";
+            for (let i = 0; i < 3; i++) {
+                const heart = document.createElement("i");
+                if (i < lives) {
+                    heart.className = "fa-solid fa-shield-heart text-rose-500 text-2xl animate-pulse transition-transform";
+                } else {
+                    heart.className = "fa-solid fa-shield text-slate-800 text-2xl border-slate-700";
+                }
+                container.appendChild(heart);
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById("scoreDisplay").innerText = score;
+        }
+
+        function gameOver(reason) {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            document.getElementById("gameplayScreen").classList.add("hidden");
+            document.getElementById("gameOverScreen").classList.remove("hidden");
+            
+            document.getElementById("finalScoreText").innerText = score;
+            document.getElementById("finalLevelText").innerText = `Level ${currentLevel}`;
+
+            const msgEl = document.getElementById("gameOverMessage");
+            if (msgEl) {
+                if (reason === "timeout") {
+                    msgEl.innerText = "System Timeout! The sector has security-locked. Accelerate identification processing on your next deployment!";
+                } else {
+                    msgEl.innerText = "All active shield backups have fully collapsed. Re-initialize mission core to try again!";
+                }
+            }
+        }
+
+        function victory() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            playVictoryFanfare();
+            triggerConfettiBurst();
+
+            document.getElementById("gameplayScreen").classList.add("hidden");
+            document.getElementById("victoryScreen").classList.remove("hidden");
+
+            document.getElementById("victoryScoreText").innerText = score;
+
+            const starsContainer = document.getElementById("starsContainer");
+            starsContainer.innerHTML = "";
+            let starsCount = 1;
+            
+            if (score > 6000) starsCount = 3;
+            else if (score > 3000) starsCount = 2;
+
+            for (let i = 1; i <= 3; i++) {
+                const star = document.createElement("i");
+                if (i <= starsCount) {
+                    star.className = "fa-solid fa-star text-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)] transform scale-110";
+                } else {
+                    star.className = "fa-regular fa-star text-slate-700";
+                }
+                starsContainer.appendChild(star);
+            }
+
+            const captions = ["Junior Agent", "Elite Operative", "Super Grand Master!"];
+            document.getElementById("starCaption").innerText = captions[starsCount - 1];
+            
+            const statuses = ["Keep training!", "Super Smart Agent!", "Legendary Kid Genius!"];
+            document.getElementById("victoryStatusText").innerText = statuses[starsCount - 1];
+        }
+
+        function goToStartPage() {
+            clearInterval(timerInterval);
+            gameActive = false;
+            
+            document.getElementById("gameplayScreen").classList.add("hidden");
+            document.getElementById("gameOverScreen").classList.add("hidden");
+            document.getElementById("victoryScreen").classList.add("hidden");
+            document.getElementById("startScreen").classList.remove("hidden");
+        }
+
+        function showInstructions() {
+            document.getElementById("instructionsModal").classList.remove("hidden");
+            playTone("G4", "8n");
+        }
+
+        function closeInstructions() {
+            document.getElementById("instructionsModal").classList.add("hidden");
+            playTone("E4", "8n");
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.classList.remove("opacity-0", "pointer-events-none");
+            toast.classList.add("opacity-100");
+            
+            setTimeout(() => {
+                toast.classList.remove("opacity-100");
+                toast.classList.add("opacity-0", "pointer-events-none");
+            }, 2500);
+        }
+
+        window.onload = function () {
+            gameActive = true;
+            console.log("Spy Quest Redesign: Completed successfully. Systems Online.");
+        };
+    </script>
+</body>
+</html>
